@@ -7,7 +7,7 @@ export type Node<T> = {
 export type LinkedList = {
 	top: Node<any>?,
 	bottom: Node<any>?,
-	height: number, -- replace with t.positiveInteger
+	height: number,
 	locked: boolean,
 
 	new: (v: any) -> LinkedList,
@@ -19,7 +19,7 @@ export type LinkedList = {
 export type SchematizedLinkedList<T> = {
 	top: Node<T>?,
 	bottom: Node<T>?,
-	height: number, -- replace with t.positiveInteger
+	height: number,
 
 	new: (v: T) -> SchematizedLinkedList<T>,
 	push: (self: SchematizedLinkedList<T>, v: T) -> (),
