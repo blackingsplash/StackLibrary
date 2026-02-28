@@ -15,18 +15,11 @@ export type Stack = {
 }
 
 local function verifyConstructorConfig(v: GlobalConfig): (boolean, string?)
-	if typeof(v) == nil then
-		return false, "GlobalConfig type expected, got nil"
-	end
 	return true
 end
 
 local function new(v: any, conf: GlobalConfig?): Constructor
 	local succ: boolean, result: string = verifyConstructorConfig(conf)
-	if typeof(conf) ~= "nil" and not succ then
-		error(result)
-	end
-
 	local curr: ConstructorNode<> = node(v)
 	return {
 		top = curr :: ConstructorNode<>,
