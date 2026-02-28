@@ -34,4 +34,17 @@ export type function JoinedSchematizedLinkedList(t1: type, t2: type)
 	return types.unionof(t1, t2)
 end
 
+export type function keyof(t1: type)
+	if not t1:is("table") then
+		error(`table expected, got {t1}`)
+	end
+
+	local union = nil
+	for property in t1:properties() do
+		union = if union then types.unionof(union, property) else property
+	end
+
+	return if union then union else types.singleton(nil)
+end
+
 return {}

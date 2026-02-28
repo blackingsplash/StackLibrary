@@ -1,75 +1,85 @@
 --!optimize 2
-local types: {} = require("./Constructor/types")
-local _config: {} = require("../Config/config")
-local node: (v: any) -> ConstructorNode<any> = require("./Constructor/node")
+local types_mod: {} = require("./Constructor/types")
+local global_conf: {} = require("./Config/config")
+local node: (v: any) -> ConstructorNode<> = require("./Constructor/node")
 local t = require("./Packages/t")
 
-export type ConstructorNode<K> = types.Node<K>
-export type Constructor = types.LinkedList
+export type ConstructorNode<K = any> = types_mod.Node<K>
+export type Constructor = types_mod.LinkedList
+export type GlobalConfig = {} --types_mod.keyof(global_conf.GlobalConfig)
+export type Stack = {
+	new: (v: any) -> Constructor,
+	push: (s: Constructor, v: any) -> (),
+	pop: (s: Constructor) -> any,
+	peek: (s: Constructor) -> ConstructorNode<>,
+}
 
-local methods = {}
-methods.__index = methods
-
-function methods.new(v: any)
-	local curr: ConstructorNode<any> = node(v)
-	return setmetatable(methods, {
-		top = curr :: ConstructorNode<any>,
-		bottom = curr :: ConstructorNode<any>,
+local function new(v: any, conf: GlobalConfig?): Constructor
+	local curr: ConstructorNode<> = node(v)
+	return {
+		top = curr :: ConstructorNode<>,
+		bottom = curr :: ConstructorNode<>,
 		height = 0 :: number,
 		locked = false :: boolean,
-	})
+		config = if conf then conf else global_conf :: { [string]: number | string },
+	}
 end
 
-function methods:push(v: any): ()
+local function push(s: Constructor, v: any): ()
 	if not t.any(v) then
 		error(`expected type notnil, got {typeof(v)}`)
 	end
-	if self.locked then
+	if s.locked then
 		error("stack is already locked by another thread; push method is invalid.")
 	end
 
-	local curr: ConstructorNode<any> = node(v)
-	if self.height > 0 then
-		curr.next = self.top
-		self.top = curr
+	local curr: ConstructorNode<> = node(v)
+	if s.height > 0 then
+		curr.next = s.top
+		s.top = curr
 	else
-		self.top = curr
-		self.bottom = curr
+		s.top = curr
+		s.bottom = curr
 	end
-	self.height += 1
+	s.height += 1
 end
 
-function methods:pop(): any
-	if self.height == 0 or not self.top then
+local function pop(s: Constructor): any
+	if s.height == 0 or not s.top then
 		error("no nodes to pop in stack")
 	end
-	if self.locked then
+	if s.locked then
 		error("stack is already locked by another thread; pop method is invalid.")
 	end
 
-	self.locked = true
-	local res: ConstructorNode<any>? = self.top
+	s.locked = true
+	local res: ConstructorNode<>? = s.top
 
-	self.top = self.top.next
+	s.top = s.top.next
 	res.next = nil
-	self.height -= 1
+	s.height -= 1
 
-	if self.height == 0 then
+	if s.height == 0 then
 		self.bottom = nil
 	end
 
-	self.locked = false
+	s.locked = false
 	return res.data
 end
 
-function methods:peek(): ConstructorNode<any>?
-	if self.height == 0 or not self.top then
+local function peek(s: Constructor): ConstructorNode<>?
+	if s.height == 0 or not s.top then
 		return nil
-	elseif self.locked then
+	elseif s.locked then
 		error("stack is already locked by another thread; peek method is invalid.")
 	else
-		return self.top
+		return s.top
 	end
 end
 
-return methods :: Constructor
+return {
+	new = new,
+	push = push,
+	pop = pop,
+	peek = peek,
+} :: Stack

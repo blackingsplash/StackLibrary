@@ -1,3 +1,3 @@
-return {
-	NODE_BOUNDS = {},
-}
+export type GlobalConfig = {}
+
+return {}
