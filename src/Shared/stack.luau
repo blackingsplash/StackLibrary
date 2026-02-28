@@ -8,13 +8,22 @@ export type ConstructorNode<K = any> = types_mod.Node<K>
 export type Constructor = types_mod.LinkedList
 export type GlobalConfig = {} --types_mod.keyof(global_conf.GlobalConfig)
 export type Stack = {
-	new: (v: any) -> Constructor,
+	create: (v: any) -> Constructor,
 	push: (s: Constructor, v: any) -> (),
 	pop: (s: Constructor) -> any,
 	peek: (s: Constructor) -> ConstructorNode<>,
 }
 
+local function verifyConstructorConfig(): (boolean, string?) end
+
 local function new(v: any, conf: GlobalConfig?): Constructor
+	if typeof(conf) ~= nil then
+		local succ: boolean, result: string = verifyConstructorConfig(conf)
+		if not succ then
+			error(result)
+		end
+	end
+
 	local curr: ConstructorNode<> = node(v)
 	return {
 		top = curr :: ConstructorNode<>,
@@ -78,7 +87,7 @@ local function peek(s: Constructor): ConstructorNode<>?
 end
 
 return {
-	new = new,
+	create = new,
 	push = push,
 	pop = pop,
 	peek = peek,
