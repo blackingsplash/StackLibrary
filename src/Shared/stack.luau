@@ -3,7 +3,7 @@ local types_mod: {} = require("./Constructor/types")
 local global_conf: {} = require("./Config/config")
 
 type AcceptedTypes = types_mod.AcceptedTypes
-type StackConfig = global_conf.GlobalConfig
+type StackConfig = types_mod.GlobalConfig
 type ConstructorNode = types_mod.Node
 type Constructor = types_mod.LinkedList
 type Stack = {
@@ -45,13 +45,13 @@ local function new(v: AcceptedTypes, conf: StackConfig?): Constructor
 		bottom = curr :: ConstructorNode,
 		height = 0 :: number,
 		locked = false :: boolean,
-		config = conf :: { [string]: number | string },
+		config = conf :: StackConfig,
 	}
 end
 
 local function push(s: Constructor, v: any): ()
 	if v == nil then
-		error(`expected type notnil, got {typeof(v)}`)
+		error(`expected a primitive datatype, got {typeof(v)}`)
 	end
 	if s.locked then
 		error("stack is already locked by another thread; push method is invalid.")

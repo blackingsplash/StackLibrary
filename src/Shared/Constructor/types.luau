@@ -1,3 +1,13 @@
+export type AcceptedTypes = "string" | "number" | "boolean" | "vector" | "buffer" | "thread"
+
+export type GlobalConfig = {
+	NodeLimit: number,
+	MaxSizePerNode: number,
+	BlacklistTypes: { AcceptedTypes },
+	ForceDeepClean: boolean,
+	NumberPrecisionSnapping: number,
+}
+
 export type Node = {
 	data: AcceptedTypes,
 	next: Node?,
@@ -8,6 +18,7 @@ export type LinkedList = {
 	bottom: Node?,
 	height: number,
 	locked: boolean,
+	config: GlobalConfig,
 
 	new: (v: AcceptedTypes) -> LinkedList,
 	push: (self: LinkedList, v: AcceptedTypes) -> (),
@@ -20,6 +31,8 @@ export type SchematizedLinkedList<T = AcceptedTypes> = {
 	top: Node?,
 	bottom: Node?,
 	height: number,
+	locked: boolean,
+	config: GlobalConfig,
 
 	new: (v: T) -> SchematizedLinkedList<T>,
 	push: (self: SchematizedLinkedList<T>, v: T) -> (),
@@ -27,8 +40,6 @@ export type SchematizedLinkedList<T = AcceptedTypes> = {
 	peek: (self: SchematizedLinkedList<T>) -> T?,
 	clear: (self: SchematizedLinkedList<T>) -> (),
 }
-
-export type AcceptedTypes = string | number | boolean | vector | buffer | thread
 
 export type function JoinedSchematizedLinkedList(t1: type, t2: type)
 	if not t1:is("table") or t2:is("table") then
