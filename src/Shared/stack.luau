@@ -11,32 +11,20 @@ type Stack = {
 	push: (s: Constructor, v: any) -> (),
 	pop: (s: Constructor) -> any,
 	peek: (s: Constructor) -> ConstructorNode,
+	clear: (s: Constructor) -> (),
+	freeze: (s: Constructor, deepFreeze: boolean?) -> (),
 }
 
 local node: (v: any) -> ConstructorNode = require("./Constructor/node")
 
-local function verifyInputType(v: AcceptedTypes) end
-
-local function verifyConstructorConfig(conf: StackConfig): (boolean, string?)
-	for k, v in conf do
-		if not global_conf[k] then
-			return false, `{k} key in config params is non-existent.`
-		end
-		if v ~= nil and typeof(v) ~= typeof(global_conf[k]) then
-			return false, `{typeof(global_conf[k])} expected, got {typeof(v)} for key: {k}`
-		end
-		v = v or global_conf[k]
-	end
-	return true
-end
-
 local function new(v: AcceptedTypes, conf: StackConfig?): Constructor
+	--[[
 	if conf then
 		local succ: boolean, result: string = verifyConstructorConfig(conf)
 		if not succ then
 			error(result)
 		end
-	end
+	end --]]
 
 	conf = conf or global_conf
 	local curr: ConstructorNode = node(v)
@@ -45,6 +33,7 @@ local function new(v: AcceptedTypes, conf: StackConfig?): Constructor
 		bottom = curr :: ConstructorNode,
 		height = 0 :: number,
 		locked = false :: boolean,
+		isfrozen = false :: boolean,
 		config = conf :: StackConfig,
 	}
 end
@@ -53,8 +42,8 @@ local function push(s: Constructor, v: any): ()
 	if v == nil then
 		error(`expected a primitive datatype, got {typeof(v)}`)
 	end
-	if s.locked then
-		error("stack is already locked by another thread; push method is invalid.")
+	if s.locked or s.isfrozen then
+		error("stack is already locked/frozen by another thread; push method is invalid.")
 	end
 
 	local curr: ConstructorNode = node(v)
@@ -72,8 +61,8 @@ local function pop(s: Constructor): any
 	if s.height == 0 or not s.top then
 		error("no nodes to pop in stack")
 	end
-	if s.locked then
-		error("stack is already locked by another thread; pop method is invalid.")
+	if s.locked or s.isfrozen then
+		error("stack is already locked/frozen by another thread; pop method is invalid.")
 	end
 
 	s.locked = true
@@ -102,12 +91,12 @@ local function peek(s: Constructor): ConstructorNode?
 end
 
 local function clear(s: Constructor): ()
-	if s.locked then
-		error("stack is already locked by another thread; clear method is invalid.")
+	if s.locked or s.isfrozen then
+		error("stack is already locked/frozen by another thread; clear method is invalid.")
 	end
 
 	s.locked = true
-	while s.top.next do
+	while s.top do
 		local next_node = s.top.next
 		s.top.data = nil
 		s.top.next = nil
@@ -120,10 +109,28 @@ local function clear(s: Constructor): ()
 	s.locked = false
 end
 
+local function freeze(s: Constructor, deepFreeze: boolean?): ()
+	deepFreeze = deepFreeze or false
+	local curr = s.top
+
+	if deepFreeze then
+		while curr do
+			if typeof(curr) == "table" then
+				table.freeze(curr)
+			end
+			curr = curr.next
+		end
+	end
+
+	table.freeze(s)
+	s.isfrozen = true
+end
+
 return {
 	create = new,
 	push = push,
 	pop = pop,
 	peek = peek,
 	clear = clear,
+	freeze = freeze,
 } :: Stack

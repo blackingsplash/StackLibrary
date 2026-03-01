@@ -1,4 +1,4 @@
-export type AcceptedTypes = "string" | "number" | "boolean" | "vector" | "buffer" | "thread"
+export type AcceptedTypes = "string" | "number" | "boolean" | "vector" | "buffer" | "table"
 
 export type GlobalConfig = {
 	NodeLimit: number,
@@ -18,6 +18,7 @@ export type LinkedList = {
 	bottom: Node?,
 	height: number,
 	locked: boolean,
+	isfrozen: boolean,
 	config: GlobalConfig,
 
 	new: (v: AcceptedTypes) -> LinkedList,
@@ -25,6 +26,7 @@ export type LinkedList = {
 	pop: (self: LinkedList) -> AcceptedTypes?,
 	peek: (self: LinkedList) -> Node?,
 	clear: (self: LinkedList) -> (),
+	freeze: (self: LinkedList, deepFreeze: boolean?) -> (),
 }
 
 export type SchematizedLinkedList<T = AcceptedTypes> = {
