@@ -1,33 +1,26 @@
 --!optimize 2
-local types_mod: {} = require("./Constructor/types")
-local global_conf: {} = require("./Config/config")
+local types_mod = require("./Constructor/types")
+local global_conf = require("./Constructor/config")
 
 type AcceptedTypes = types_mod.AcceptedTypes
 type StackConfig = types_mod.GlobalConfig
+type LinkedList = types_mod.LinkedList
 type ConstructorNode = types_mod.Node
-type Constructor = types_mod.LinkedList
-type Stack = {
-	create: (v: any) -> Constructor,
-	push: (s: Constructor, v: any) -> (),
-	pop: (s: Constructor) -> any,
-	peek: (s: Constructor) -> ConstructorNode,
-	clear: (s: Constructor) -> (),
-	freeze: (s: Constructor, deepFreeze: boolean?) -> (),
-}
+type Constructor = types_mod.Stack
 
-local node: (v: any) -> ConstructorNode = require("./Constructor/node")
+local node = require("./Constructor/node")
+local valid_config = require("./validconfig")
 
-local function new(v: AcceptedTypes, conf: StackConfig?): Constructor
-	--[[
+local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 	if conf then
-		local succ: boolean, result: string = verifyConstructorConfig(conf)
+		local succ: boolean, result: string = valid_config.treat(conf)
 		if not succ then
 			error(result)
 		end
-	end --]]
+	end
 
 	conf = conf or global_conf
-	local curr: ConstructorNode = node(v)
+	local curr = node(v)
 	return {
 		top = curr :: ConstructorNode,
 		bottom = curr :: ConstructorNode,
@@ -39,14 +32,14 @@ local function new(v: AcceptedTypes, conf: StackConfig?): Constructor
 end
 
 local function push(s: Constructor, v: any): ()
-	if v == nil then
-		error(`expected a primitive datatype, got {typeof(v)}`)
+	if typeof(table.find(s, type(v))) ~= "number" then
+		error(`expected a valid whitelisted datatype, got {typeof(v)}`)
 	end
 	if s.locked or s.isfrozen then
 		error("stack is already locked/frozen by another thread; push method is invalid.")
 	end
 
-	local curr: ConstructorNode = node(v)
+	local curr = node(v)
 	if s.height > 0 then
 		curr.next = s.top
 		s.top = curr
@@ -115,14 +108,14 @@ local function freeze(s: Constructor, deepFreeze: boolean?): ()
 
 	if deepFreeze then
 		while curr do
-			if typeof(curr) == "table" then
-				table.freeze(curr)
+			if typeof(curr.data) == "table" then
+				table.freeze(curr.data)
 			end
 			curr = curr.next
 		end
 	end
 
-	table.freeze(s)
+	table.freeze(curr.data)
 	s.isfrozen = true
 end
 
@@ -133,4 +126,4 @@ return {
 	peek = peek,
 	clear = clear,
 	freeze = freeze,
-} :: Stack
+} :: Constructor

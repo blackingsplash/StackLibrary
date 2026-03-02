@@ -2,7 +2,7 @@ local types_mod = require("./Constructor/types")
 local global_conf = require("./Constructor/config")
 
 type ValidTypesLibrary = {
-	add: (v: string) -> (),
+	--add: (v: string) -> (),
 	remove: (v: string) -> (),
 	treat: (v: { types_mod.AcceptedTypes }) -> (boolean, string?),
 	check: (v: string) -> boolean,
@@ -18,12 +18,12 @@ local function check(v: string): boolean
 	end
 end
 
-local function add(v: string): ()
+--[[local function add(v: string): ()
 	if typeof(table.find(ValidTypes, v)) == "number" then
 		return
 	end
-	ValidTypes[#ValidTypes + 1] = v
-end
+	table.insert(ValidTypes, v)
+end--]]
 
 local function remove(v: string): ()
 	if typeof(table.find(v)) ~= "number" then
@@ -33,10 +33,29 @@ local function remove(v: string): ()
 	table.remove(ValidTypes, index)
 end
 
-local function treat(v: { types_mod.AcceptedTypes }): (boolean, string?) end
+local function treat(v: { types_mod.AcceptedTypes }): (boolean, string?)
+	for k, j in v do
+		if not global_conf[k] or typeof(j) ~= typeof(global_conf[k]) then
+			return false,
+				`{k} key is not a valid configuration key or is of the wrong type (expected {global_conf[k]}, got {typeof(
+					j
+				)}}).`
+		end
+		j = j or global_conf[k]
+	end
+
+	for k, j in v["BlacklistedTypes"] do
+		if type(j) ~= "string" then
+			return false, `only string types are valid to put inside a BlackklistTypes list`
+		end
+		remove(j)
+	end
+
+	return true
+end
 
 return {
-	add = add,
+	--add = add,
 	remove = remove,
 	treat = treat,
 	check = check,

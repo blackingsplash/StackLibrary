@@ -1,4 +1,4 @@
-local types_mod = require("../Constructor/types")
+local types_mod = require("./types")
 
 return table.freeze({
 	NodeLimit = 50,

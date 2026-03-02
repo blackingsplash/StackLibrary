@@ -20,7 +20,9 @@ export type LinkedList = {
 	locked: boolean,
 	isfrozen: boolean,
 	config: GlobalConfig,
+}
 
+export type Stack = LinkedList & {
 	new: (v: AcceptedTypes) -> LinkedList,
 	push: (self: LinkedList, v: AcceptedTypes) -> (),
 	pop: (self: LinkedList) -> AcceptedTypes?,
