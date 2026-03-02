@@ -1,6 +1,6 @@
 --!optimize 2
 local types_mod = require("./Constructor/types")
-local global_conf = require("./Constructor/config")
+local global_conf = require("./Constructor/configtemplate")
 
 type AcceptedTypes = types_mod.AcceptedTypes
 type StackConfig = types_mod.GlobalConfig
@@ -9,31 +9,29 @@ type ConstructorNode = types_mod.Node
 type Constructor = types_mod.Stack
 
 local node = require("./Constructor/node")
-local valid_config = require("./validconfig")
+local valid_config = require("./Constructor/configfuncs")
 
-local table_find, table_freeze = table.find, table.freeze
+local table_freeze = table.freeze
+local check, treat = valid_config.check, valid_config.treat
 
 local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 	if conf then
-		local succ: boolean, result: string = valid_config.treat(conf)
+		local succ: boolean, result: string = treat(conf)
 		if not succ then
 			error(result)
 		end
 	end
 
-	if type(v) == "number" then
-		v = math.round(v * conf["MaxSizePerNode"]) / conf["MaxSizePerNode"]
-	end
-
 	conf = conf or global_conf
+
 	local curr = node(v)
+	local nodeLimit, maxSizePerNode = conf["NodeLimit"], conf["MaxSizePerNode"]
+
 	return {
 		top = curr :: ConstructorNode,
-		bottom = curr :: ConstructorNode,
 		height = 1 :: number,
-		maxNodeAmount = conf["NodeLimit"] :: number,
-		maxByteSizePerNode = conf["MaxSizePerNode"] :: number,
-		precision = conf["NumberPrecisionSnapping"] :: number,
+		maxNodeAmount = nodeLimit :: number,
+		maxByteSizePerNode = maxSizePerNode :: number,
 		locked = false :: boolean,
 		isfrozen = false :: boolean,
 		config = conf :: StackConfig,
@@ -41,7 +39,7 @@ local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 end
 
 local function push(s: Constructor, v: AcceptedTypes): ()
-	if typeof(table_find(s, type(v))) ~= "number" then
+	if check(v) then
 		error(`expected a valid whitelisted datatype, got {typeof(v)}`)
 	end
 	if s.locked or s.isfrozen then
@@ -50,9 +48,6 @@ local function push(s: Constructor, v: AcceptedTypes): ()
 	if s.height + 1 > s.maxNodeAmount then
 		error("max amount of nodes exceeded. try popping.")
 	end
-	if type(v) == "number" then
-		v = math.round(v * s.precision) / s.precision
-	end
 
 	local curr = node(v)
 	if s.height > 0 then
@@ -60,29 +55,28 @@ local function push(s: Constructor, v: AcceptedTypes): ()
 		s.top = curr
 	else
 		s.top = curr
-		s.bottom = curr
 	end
 	s.height += 1
 end
 
-local function pop(s: Constructor): any
+local function pop(s: Constructor): AcceptedTypes?
 	if s.height == 0 or not s.top then
 		error("no nodes to pop in stack")
 	end
 	if s.locked or s.isfrozen then
 		error("stack is already locked/frozen by another thread; pop method is invalid.")
 	end
+	if s.height == 1 then
+		s.top = nil
+		return nil
+	end
 
 	s.locked = true
-	local res: ConstructorNode? = s.top
 
+	local res: ConstructorNode? = s.top
 	s.top = s.top.next
 	res.next = nil
 	s.height -= 1
-
-	if s.height == 0 then
-		self.bottom = nil
-	end
 
 	s.locked = false
 	return res.data
@@ -112,7 +106,6 @@ local function clear(s: Constructor): ()
 	end
 
 	s.top = nil
-	s.bottom = nil
 	s.height = 0
 	s.locked = false
 end

@@ -5,7 +5,6 @@ export type GlobalConfig = {
 	MaxSizePerNode: number,
 	BlacklistTypes: { AcceptedTypes },
 	ForceDeepClean: boolean,
-	NumberPrecisionSnapping: number,
 }
 
 export type Node = {
@@ -15,11 +14,9 @@ export type Node = {
 
 export type LinkedList = {
 	top: Node?,
-	bottom: Node?,
 	height: number,
 	maxNodeAmount: number,
 	maxByteSizePerNode: number,
-	precision: number,
 	locked: boolean,
 	isfrozen: boolean,
 	config: GlobalConfig,
@@ -36,12 +33,10 @@ export type Stack = LinkedList & {
 
 export type SchematizedLinkedList<T = AcceptedTypes> = {
 	top: Node?,
-	bottom: Node?,
 	height: number,
 	maxNodeAmount: number,
 	maxByteSizePerNode: number,
-	precision: number,
-	registeredType: string,
+	registeredType: string?,
 	locked: boolean,
 	config: GlobalConfig,
 }

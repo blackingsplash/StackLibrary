@@ -14,9 +14,6 @@ default                         = "https://github.com/pesde-pkg/index"
 [wally_indices]
 default                         = "https://github.com/UpliftGames/wally-index"
 
-[dependencies]
-t                               =  { wally = "osyrisrblx/t", version = "^3.1.1" }
-
 [engines]
 pesde                           = "^0.7.0"
 lune                            = "^0.10.2"
