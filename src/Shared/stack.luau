@@ -11,6 +11,8 @@ type Constructor = types_mod.Stack
 local node = require("./Constructor/node")
 local valid_config = require("./validconfig")
 
+local table_find, table_freeze = table.find, table.freeze
+
 local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 	if conf then
 		local succ: boolean, result: string = valid_config.treat(conf)
@@ -19,12 +21,19 @@ local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 		end
 	end
 
+	if type(v) == "number" then
+		v = math.round(v * conf["MaxSizePerNode"]) / conf["MaxSizePerNode"]
+	end
+
 	conf = conf or global_conf
 	local curr = node(v)
 	return {
 		top = curr :: ConstructorNode,
 		bottom = curr :: ConstructorNode,
-		height = 0 :: number,
+		height = 1 :: number,
+		maxNodeAmount = conf["NodeLimit"] :: number,
+		maxByteSizePerNode = conf["MaxSizePerNode"] :: number,
+		precision = conf["NumberPrecisionSnapping"] :: number,
 		locked = false :: boolean,
 		isfrozen = false :: boolean,
 		config = conf :: StackConfig,
@@ -32,11 +41,18 @@ local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 end
 
 local function push(s: Constructor, v: any): ()
-	if typeof(table.find(s, type(v))) ~= "number" then
+	if typeof(table_find(s, type(v))) ~= "number" then
 		error(`expected a valid whitelisted datatype, got {typeof(v)}`)
 	end
 	if s.locked or s.isfrozen then
 		error("stack is already locked/frozen by another thread; push method is invalid.")
+	end
+	if s.height + 1 > s.maxNodeAmount then
+		error("max amount of nodes exceeded. try popping.")
+	end
+
+	if type(v) == "number" then
+		v = math.round(v * s.precision) / s.precision
 	end
 
 	local curr = node(v)
@@ -109,13 +125,13 @@ local function freeze(s: Constructor, deepFreeze: boolean?): ()
 	if deepFreeze then
 		while curr do
 			if typeof(curr.data) == "table" then
-				table.freeze(curr.data)
+				table_freeze(curr.data)
 			end
 			curr = curr.next
 		end
 	end
 
-	table.freeze(curr.data)
+	table_freeze(curr.data)
 	s.isfrozen = true
 end
 

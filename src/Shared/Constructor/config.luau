@@ -5,5 +5,5 @@ return table.freeze({
 	MaxSizePerNode = 65535,
 	BlacklistTypes = {},
 	ForceDeepClean = true,
-	NumberPrecisionSnapping = 4,
+	NumberPrecisionSnapping = 1000,
 }) :: types_mod.GlobalConfig

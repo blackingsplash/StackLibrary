@@ -9,6 +9,7 @@ type ValidTypesLibrary = {
 }
 
 local ValidTypes: { types_mod.AcceptedTypes } = { "string", "number", "boolean", "vector", "buffer", "table" }
+local table_find, table_remove, table_insert = table.find, table.remove, table.insert
 
 local function check(v: string): boolean
 	if typeof(table.find(ValidTypes, v)) ~= "number" then
@@ -19,18 +20,18 @@ local function check(v: string): boolean
 end
 
 --[[local function add(v: string): ()
-	if typeof(table.find(ValidTypes, v)) == "number" then
+	if typeof(table_find(ValidTypes, v)) == "number" then
 		return
 	end
-	table.insert(ValidTypes, v)
+	table_insert(ValidTypes, v)
 end--]]
 
 local function remove(v: string): ()
-	if typeof(table.find(v)) ~= "number" then
+	if typeof(table_find(v)) ~= "number" then
 		return
 	end
-	local index: number = table.find(v)
-	table.remove(ValidTypes, index)
+	local index: number = table_find(v)
+	table_remove(ValidTypes, index)
 end
 
 local function treat(v: { types_mod.AcceptedTypes }): (boolean, string?)

@@ -17,6 +17,9 @@ export type LinkedList = {
 	top: Node?,
 	bottom: Node?,
 	height: number,
+	maxNodeAmount: number,
+	maxByteSizePerNode: number,
+	precision: number,
 	locked: boolean,
 	isfrozen: boolean,
 	config: GlobalConfig,
@@ -35,34 +38,20 @@ export type SchematizedLinkedList<T = AcceptedTypes> = {
 	top: Node?,
 	bottom: Node?,
 	height: number,
+	maxNodeAmount: number,
+	maxByteSizePerNode: number,
+	precision: number,
+	registeredType: string,
 	locked: boolean,
 	config: GlobalConfig,
+}
 
+export type SchematizedStack<T = AcceptedTypes> = SchematizedLinkedList<T> & {
 	new: (v: T) -> SchematizedLinkedList<T>,
 	push: (self: SchematizedLinkedList<T>, v: T) -> (),
 	pop: (self: SchematizedLinkedList<T>) -> T?,
 	peek: (self: SchematizedLinkedList<T>) -> T?,
 	clear: (self: SchematizedLinkedList<T>) -> (),
 }
-
-export type function JoinedSchematizedLinkedList(t1: type, t2: type)
-	if not t1:is("table") or t2:is("table") then
-		error("arguments expected to be of type table to join.")
-	end
-	return types.unionof(t1, t2)
-end
-
-export type function keyof(t1: type)
-	if not t1:is("table") then
-		error(`table expected, got {t1}`)
-	end
-
-	local union = nil
-	for property in t1:properties() do
-		union = if union then types.unionof(union, property) else property
-	end
-
-	return if union then union else types.singleton(nil)
-end
 
 return {}
