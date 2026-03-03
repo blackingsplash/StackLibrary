@@ -1,4 +1,4 @@
-# Presentation
+# StackLibrary
 **StackLibrary** is a simple library that implements the use of the Stack data structure in Roblox, focusing mainly on optimization and readable code that is easily modified by the developer. Its functionality 
 works well as it has thread safety, a frozen state (for .freeze), enforces a node limit and byte size limit on each node that can be customised, and more! This module is **still** just being published, so it may
 have some weird edgecases, however, all the methods were tested and optimized.
