@@ -50,7 +50,13 @@ local function treat(v): (boolean, string?)
 	return true
 end
 
-local function calculateBytes(v: any): boolean end
+local function calculateBytes(v: unknown): number
+	if not ByteFuncs[type(v)] then
+		error("inputted type is not  a whitelisted type, cannot find bytes.")
+	end
+	local result: number = ByteFuncs[type(v)](v)
+	return result
+end
 
 return {
 	check = check,
