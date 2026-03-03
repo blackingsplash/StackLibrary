@@ -3,11 +3,10 @@ local types_mod = require("./Constructor/types")
 local global_conf = require("./Constructor/configtemplate")
 
 type SchematizedLinkedList<T> = types_mod.SchematizedLinkedList<T>
-type AcceptedTypes = types_mod.AcceptedTypes
 type StackConfig = types_mod.GlobalConfig
 type LinkedList = types_mod.LinkedList
 type ConstructorNode = types_mod.Node
-type Constructor<T = AcceptedTypes> = types_mod.SchematizedStack
+type Constructor<T = unknown> = types_mod.SchematizedStack<>
 
 local node = require("./Constructor/node")
 local valid_config = require("./Constructor/configutils")
@@ -22,7 +21,7 @@ local table_freeze = table.freeze
     @param conf -- the configuration unique to this SchematizedStack.
     @return LinkedList
 ]=]
-local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
+local function new(v: unknown, conf: StackConfig?): LinkedList
 	if conf then
 		local succ: boolean, result: string = valid_config.treat(conf)
 		if not succ then
@@ -35,10 +34,13 @@ local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 	local nodeLimit, maxSizePerNode = conf["NodeLimit"], conf["MaxSizePerNode"]
 	return {
 		top = curr :: ConstructorNode,
+
 		height = 0 :: number,
 		maxNodeAmount = nodeLimit :: number,
 		maxByteSizePerNode = maxSizePerNode :: number,
+
 		registeredType = type(v) :: string?,
+
 		locked = false :: boolean,
 		isfrozen = false :: boolean,
 	}
@@ -52,7 +54,7 @@ end
     @param v -- the value that will be pushed. In a SchematizedStack, this should always be the same type as the other nodes or it will error.
     @return ()
 ]=]
-local function push(s: Constructor, v: AcceptedTypes): ()
+local function push(s: Constructor<>, v: unknown): ()
 	if type(v) ~= s.registeredType then
 		error(`expected the same type as other data, got {typeof(v)}`)
 	end
@@ -83,7 +85,7 @@ end
 
 	@note If there are no nodes within the stack, it will return an error. If this method pops the last node, the registeredType of this stack will change.
 ]=]
-local function pop(s: Constructor): AcceptedTypes?
+local function pop(s: Constructor): unknown
 	if s.height == 0 or not s.top then
 		error("no nodes to pop in stack")
 	end
@@ -214,7 +216,7 @@ end
 
     @note The parameter of the predicate function will be the same type as all the other node data. If there are no nodes within the stack, it will return nil.
 ]=]
-local function some(s: Constructor, p: (v: AcceptedTypes) -> boolean): boolean
+local function some(s: Constructor, p: (v: unknown) -> boolean): boolean
 	if s.locked then
 		error("stack is already locked by another thread; some method is invalid.")
 	end

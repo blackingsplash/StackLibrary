@@ -1,8 +1,8 @@
 local types_mod = require("./types")
 
-return function(v: types_mod.AcceptedTypes)
+return function(v)
 	return {
-		data = v :: types_mod.AcceptedTypes,
+		data = v :: unknown,
 		next = nil :: types_mod.Node?,
 	} :: types_mod.Node
 end

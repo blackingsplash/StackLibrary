@@ -5,11 +5,11 @@ type AcceptedTypes = types_mod.AcceptedTypes
 
 type ValidTypesLibrary = {
 	check: (v: string) -> boolean,
-	treat: (v: { AcceptedTypes }) -> (boolean, string?),
+	treat: (v: { [string]: unknown }) -> (boolean, string?),
 	calculateBytes: (v: any) -> number,
 }
 
-local Funcs: { [AcceptedTypes]: (v: unknown) -> number } = {
+local ByteFuncs: { [AcceptedTypes]: (v: unknown) -> number } = {
 	["string"] = function(v: string): number
 		return string.len(v)
 	end,
@@ -28,15 +28,15 @@ local Funcs: { [AcceptedTypes]: (v: unknown) -> number } = {
 	end,
 }
 
-local function check(v: string): boolean
-	if typeof(Funcs[v]) == "function" then
+local function check(v: { [string]: unknown }): boolean
+	if typeof(ByteFuncs[v]) == "function" then
 		return true
 	else
 		return false
 	end
 end
 
-local function treat(v: { AcceptedTypes }): (boolean, string?)
+local function treat(v): (boolean, string?)
 	for k, j in v do
 		if not global_conf[k] or type(j) ~= type(global_conf[k]) then
 			return false,

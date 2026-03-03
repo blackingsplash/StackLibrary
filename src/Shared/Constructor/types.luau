@@ -3,12 +3,10 @@ export type AcceptedTypes = "string" | "number" | "boolean" | "vector" | "buffer
 export type GlobalConfig = {
 	NodeLimit: number,
 	MaxSizePerNode: number,
-	BlacklistTypes: { AcceptedTypes },
-	ForceDeepClean: boolean,
 }
 
 export type Node = {
-	data: AcceptedTypes,
+	data: unknown,
 	next: Node?,
 }
 
@@ -17,29 +15,33 @@ export type LinkedList = {
 	height: number,
 	maxNodeAmount: number,
 	maxByteSizePerNode: number,
+	--lastModification: number,
+	--changeCount: number,
+	-- forceDeepClean: boolean,
 	locked: boolean,
 	isfrozen: boolean,
 }
 
 export type Stack = LinkedList & {
-	new: (v: AcceptedTypes) -> LinkedList,
-	push: (self: LinkedList, v: AcceptedTypes) -> (),
-	pop: (self: LinkedList) -> AcceptedTypes?,
+	new: (v: unknown) -> LinkedList,
+	push: (self: LinkedList, v: unknown) -> (),
+	pop: (self: LinkedList) -> unknown,
 	peek: (self: LinkedList) -> Node?,
 	clear: (self: LinkedList) -> (),
-	freeze: (self: LinkedList, deepFreeze: boolean?) -> (),
+	freeze: (self: LinkedList, deepFreeze: unknown?) -> (),
 }
 
-export type SchematizedLinkedList<T = AcceptedTypes> = {
+export type SchematizedLinkedList<T> = {
 	top: Node?,
 	height: number,
 	maxNodeAmount: number,
 	maxByteSizePerNode: number,
 	registeredType: string?,
 	locked: boolean,
+	isfrozen: boolean,
 }
 
-export type SchematizedStack<T = AcceptedTypes> = SchematizedLinkedList<T> & {
+export type SchematizedStack<T = unknown> = SchematizedLinkedList<T> & {
 	new: (v: T) -> SchematizedLinkedList<T>,
 	push: (self: SchematizedLinkedList<T>, v: T) -> (),
 	pop: (self: SchematizedLinkedList<T>) -> T?,

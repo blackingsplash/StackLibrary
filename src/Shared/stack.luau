@@ -2,7 +2,6 @@
 local types_mod = require("./Constructor/types")
 local global_conf = require("./Constructor/configtemplate")
 
-type AcceptedTypes = types_mod.AcceptedTypes
 type StackConfig = types_mod.GlobalConfig
 type LinkedList = types_mod.LinkedList
 type ConstructorNode = types_mod.Node
@@ -14,7 +13,7 @@ local valid_config = require("./Constructor/configutils")
 local table_freeze = table.freeze
 local check, treat = valid_config.check, valid_config.treat
 
-local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
+local function new(v: unknown, conf: StackConfig?): LinkedList
 	if conf then
 		local succ: boolean, result: string = treat(conf)
 		if not succ then
@@ -25,21 +24,23 @@ local function new(v: AcceptedTypes, conf: StackConfig?): LinkedList
 	conf = conf or global_conf
 
 	local curr = node(v)
-	local nodeLimit, maxSizePerNode = conf["NodeLimit"], conf["MaxSizePerNode"]
+	local nodeLimit, maxSizePerNode = conf["NodeLimit"], conf["MaxByteSizePerNode"]
 
 	return {
 		top = curr :: ConstructorNode,
 		height = 1 :: number,
+
 		maxNodeAmount = nodeLimit :: number,
 		maxByteSizePerNode = maxSizePerNode :: number,
+
 		locked = false :: boolean,
 		isfrozen = false :: boolean,
 	}
 end
 
-local function push(s: Constructor, v: AcceptedTypes): ()
-	if check(v) then
-		error(`expected a valid whitelisted datatype, got {typeof(v)}`)
+local function push(s: Constructor, v: unknown): ()
+	if check(type(v)) then
+		error(`expected a valid primitive whitelisted datatype, got {typeof(v)}`)
 	end
 	if s.locked or s.isfrozen then
 		error("stack is already locked/frozen by another thread; push method is invalid.")
@@ -58,7 +59,7 @@ local function push(s: Constructor, v: AcceptedTypes): ()
 	s.height += 1
 end
 
-local function pop(s: Constructor): AcceptedTypes?
+local function pop(s: Constructor): unknown
 	if s.height == 0 or not s.top then
 		error("no nodes to pop in stack")
 	end
@@ -91,9 +92,9 @@ local function peek(s: Constructor): ConstructorNode?
 	end
 end
 
-local function clear(s: Constructor): ()
+local function deepClean(s: Constructor): ()
 	if s.locked or s.isfrozen then
-		error("stack is already locked/frozen by another thread; clear method is invalid.")
+		error("stack is already locked/frozen by another thread; clean method is invalid.")
 	end
 
 	s.locked = true
@@ -126,11 +127,33 @@ local function freeze(s: Constructor, deepFreeze: boolean?): ()
 	s.isfrozen = true
 end
 
+local function some(s: Constructor, p: (v: unknown) -> boolean): boolean
+	if s.locked then
+		error("stack is already locked by another thread; some method is invalid.")
+	end
+	if s.height == 0 or not s.top then
+		error("no nodes to pop in stack in a deep freeze.")
+	end
+	s.locked = true
+
+	local curr = s.top
+	while curr do
+		if p(curr.data) then
+			return true
+		end
+		curr = curr.next
+	end
+
+	s.locked = false
+	return false
+end
+
 return {
 	create = new,
 	push = push,
 	pop = pop,
 	peek = peek,
-	clear = clear,
+	clear = deepClean,
 	freeze = freeze,
+	some = some,
 } :: Constructor
