@@ -17,7 +17,7 @@ Steps to download:
 ```
     1. Download the Roblox package/model via the Marketplace [here](https://create.roblox.com/store/asset/81799640024168)
     2. Place the folder "StackLibrary" in ReplicatedStorage
-    3. If you ever need to test, you can go ahead and look at the **Tests** folder, otherwise, it is free to delete.
+    3. If you ever need to test, you can go ahead and look at the Tests folder, otherwise, it is free to delete.
 ```
 
 # License
