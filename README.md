@@ -14,9 +14,9 @@ have some weird edgecases, however, all the methods were tested and optimized.
 ## Setup
 
 Currently, StackLibrary is only available on the Roblox marketplace. Further updates will be pushed out to make it wally available as well as make the documentation better.
-Steps to download:
+Steps to download (link is [here](https://create.roblox.com/store/asset/81799640024168)):
 ```
-    1. Download the Roblox package/model via the Marketplace [here](https://create.roblox.com/store/asset/81799640024168)
+    1. Download the Roblox package/model via the Marketplace
     2. Place the folder "StackLibrary" in ReplicatedStorage
     3. If you ever need to test, you can go ahead and look at the Tests folder, otherwise, it is free to delete.
 ```
